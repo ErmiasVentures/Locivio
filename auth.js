@@ -1,10 +1,12 @@
 import { auth, db } from "./firebase.js";
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
 import {
   doc,
   setDoc,
@@ -26,13 +28,16 @@ window.createAccount = async function () {
     const user = userCredential.user;
 
     await setDoc(doc(db, "users", user.uid), {
-      name,
-      email,
+      name: name,
+      email: email,
+      plan: "trial",
+      trialDays: 5,
       createdAt: serverTimestamp()
     });
 
     alert("Account created successfully!");
-    if (typeof showScreen === "function") showScreen("homeScreen");
+    showScreen("appScreen");
+
   } catch (error) {
     alert(error.message);
   }
@@ -50,7 +55,8 @@ window.loginAccount = async function () {
   try {
     await signInWithEmailAndPassword(auth, email, password);
     alert("Login successful!");
-    if (typeof showScreen === "function") showScreen("homeScreen");
+    showScreen("appScreen");
+
   } catch (error) {
     alert(error.message);
   }
@@ -58,7 +64,7 @@ window.loginAccount = async function () {
 
 window.logoutAccount = async function () {
   await signOut(auth);
-  if (typeof showScreen === "function") showScreen("loginScreen");
+  showScreen("loginScreen");
 };
 
 onAuthStateChanged(auth, (user) => {

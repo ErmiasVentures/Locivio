@@ -3,279 +3,284 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Locivio</title>
-
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
 </head>
 
 <body>
 
-  <section class="hero" id="logoTapArea">
-    <div class="brand">LOCIVIO</div>
-    <div class="tagline">Your private AI memory for everything you own.</div>
+<section class="hero" id="logoTapArea">
+  <div class="brand">LOCIVIO</div>
+  <div class="tagline">Your private AI memory for everything you own.</div>
 
-    <div class="hero-card">
-      <div class="icon">📦</div>
-      <h1>Never lose what you own again.</h1>
-      <p>Save where your important items are, search naturally, use voice, and keep your personal memory private on your device.</p>
+  <div class="hero-card">
+    <div class="icon">📦</div>
+    <h1>Never lose what you own again.</h1>
+    <p>Save where your important items are, search naturally, use voice, and keep your personal memory private.</p>
 
-      <div class="benefits">
-        <div>✅ Save locations and items</div>
-        <div>✅ Search “Where is my passport?”</div>
-        <div>✅ Voice search and talk-back</div>
-        <div>✅ Backup and restore your data</div>
+    <div class="benefits">
+      <div>✅ Save locations and items</div>
+      <div>✅ Search “Where is my passport?”</div>
+      <div>✅ Voice search and talk-back</div>
+      <div>✅ Backup and restore your data</div>
+    </div>
+
+    <button onclick="showScreen('signupScreen')">Create Account</button>
+    <button class="secondary" onclick="showScreen('loginScreen')">Login</button>
+  </div>
+</section>
+
+<main class="container">
+
+  <section id="signupScreen" class="screen hidden card">
+    <h2>Create Account</h2>
+
+    <label>Full Name</label>
+    <input id="signupName" type="text" placeholder="Your name">
+
+    <label>Email</label>
+    <input id="signupEmail" type="email" placeholder="you@example.com">
+
+    <label>Password</label>
+    <input id="signupPassword" type="password" placeholder="Minimum 6 characters">
+
+    <label class="checkRow">
+      <input id="signupRemember" type="checkbox">
+      Remember me
+    </label>
+
+    <button onclick="createAccount()">Start 5-Day Free Trial</button>
+    <button class="secondary" onclick="showScreen('loginScreen')">Already have an account? Login</button>
+  </section>
+
+  <section id="loginScreen" class="screen hidden card">
+    <h2>Login</h2>
+
+    <label>Email</label>
+    <input id="loginEmail" type="email" placeholder="you@example.com">
+
+    <label>Password</label>
+    <input id="loginPassword" type="password" placeholder="Password">
+
+    <label class="checkRow">
+      <input id="loginRemember" type="checkbox">
+      Remember me
+    </label>
+
+    <button onclick="loginAccount()">Login</button>
+    <button class="secondary" onclick="forgotPassword()">Forgot Password</button>
+    <button class="secondary" onclick="showScreen('signupScreen')">Create Account</button>
+  </section>
+
+  <section id="appScreen" class="screen hidden">
+    <div class="card">
+      <h2>Dashboard</h2>
+
+      <div id="accountStatus" class="privacy-box"></div>
+
+      <div class="grid3">
+        <div class="kpi">Places <span id="kpiPlaces">0</span></div>
+        <div class="kpi">Items <span id="kpiItems">0</span></div>
+        <div class="kpi">Favorites <span id="kpiFavorites">0</span></div>
       </div>
 
-      <button onclick="showScreen('signupScreen')">Create Account</button>
-      <button class="secondary" onclick="showScreen('loginScreen')">Login</button>
+      <div id="recentBox" class="result"></div>
+
+      <button onclick="showScreen('newPlaceScreen')">Add New Location</button>
+      <button onclick="showScreen('searchScreen')">Search Items</button>
+      <button onclick="showScreen('manageScreen')">Manage Items</button>
+      <button onclick="showScreen('backupScreen')">Backup / Restore</button>
+      <button class="secondary" onclick="logoutAccount()">Logout</button>
+    </div>
+
+    <div class="card">
+      <h2>Trial / Subscription</h2>
+
+      <div class="grid3">
+        <div class="kpi">Days Left <span id="daysLeft">0</span></div>
+        <div class="kpi">Locations <span id="locationUsage">0 / 2</span></div>
+        <div class="kpi">Items <span id="itemUsage">0 / 20</span></div>
+      </div>
+
+      <div id="usageWarning" class="warningBox"></div>
+
+      <button class="premium" onclick="subscribePlus()">Upgrade to Plus</button>
+    </div>
+
+    <div class="card">
+      <h2>Favorites</h2>
+      <div id="favoritesBox"></div>
+    </div>
+
+    <div class="card">
+      <h2>All Saved Locations</h2>
+      <div id="allScans"></div>
+    </div>
+
+    <div id="ownerPanel" class="card hidden">
+      <h2>Owner Mode</h2>
+      <button onclick="ownerSetPlus()">Activate Plus</button>
+      <button onclick="ownerResetTrial()">Reset Trial</button>
+      <button onclick="ownerExpire()">Expire Trial</button>
+      <button onclick="loadDemoData()">Load Demo Data</button>
+      <button class="danger" onclick="resetAllData()">Reset All Data</button>
     </div>
   </section>
 
-  <main class="container">
+  <section id="newPlaceScreen" class="screen hidden card">
+    <h2>Add New Location</h2>
 
-    <section id="signupScreen" class="screen hidden card">
-      <h2>Create Account</h2>
+    <label>Scan Type</label>
+    <select id="scanMode">
+      <option>Location</option>
+      <option>Important Documents</option>
+      <option>Closet</option>
+      <option>Garage Section</option>
+      <option>Storage Box</option>
+      <option>Other</option>
+    </select>
 
-      <label>Email</label>
-      <input id="signupEmail" type="email" placeholder="you@example.com">
+    <label>Area</label>
+    <input id="areaInput" placeholder="Example: Upstairs, Garage, Office">
+    <button class="secondary" onclick="startVoice('areaInput', false)">🎤 Speak Area</button>
 
-      <label>Password</label>
-      <input id="signupPassword" type="password" placeholder="Minimum 6 characters">
+    <label>Location</label>
+    <input id="locationInput" placeholder="Example: Bedroom closet">
+    <button class="secondary" onclick="startVoice('locationInput', false)">🎤 Speak Location</button>
 
-      <label class="checkRow">
-        <input id="signupRemember" type="checkbox">
-        Remember me
-      </label>
+    <label>Detail</label>
+    <input id="detailInput" placeholder="Example: Top shelf, black box">
+    <button class="secondary" onclick="startVoice('detailInput', false)">🎤 Speak Detail</button>
 
-      <button onclick="createAccount()">Start 5-Day Free Trial</button>
-      <button class="secondary" onclick="showScreen('loginScreen')">Already have an account? Login</button>
-    </section>
+    <label>Items</label>
+    <textarea id="itemsInput" rows="4" placeholder="Example: passport, shoes, documents"></textarea>
+    <button class="secondary" onclick="startVoice('itemsInput', true)">🎤 Speak Items</button>
 
-    <section id="loginScreen" class="screen hidden card">
-      <h2>Login</h2>
+    <label>Notes</label>
+    <textarea id="notesInput" rows="3" placeholder="Any extra notes"></textarea>
+    <button class="secondary" onclick="startVoice('notesInput', true)">🎤 Speak Notes</button>
 
-      <label>Email</label>
-      <input id="loginEmail" type="email">
+    <label>Inside Photo</label>
+    <input id="insidePhotoInput" type="file" accept="image/*">
+    <img id="insidePreview" style="display:none;">
 
-      <label>Password</label>
-      <input id="loginPassword" type="password">
+    <button class="premium" onclick="runImageRecognition()">AI Detect Items</button>
 
-      <label class="checkRow">
-        <input id="loginRemember" type="checkbox">
-        Remember me
-      </label>
+    <label>Outside Photo</label>
+    <input id="outsidePhotoInput" type="file" accept="image/*">
+    <img id="outsidePreview" style="display:none;">
 
-      <button onclick="login()">Login</button>
-      <button class="secondary" onclick="forgotPassword()">Forgot Password</button>
-      <button class="secondary" onclick="showScreen('signupScreen')">Create Account</button>
-    </section>
+    <button class="success" onclick="saveNewPlace()">Save Location</button>
+    <div id="newStatus" class="status"></div>
 
-    <section id="appScreen" class="screen hidden">
+    <button class="secondary" onclick="showScreen('appScreen')">Back to Dashboard</button>
+  </section>
 
-      <div class="card">
-        <h2>Dashboard</h2>
+  <section id="searchScreen" class="screen hidden card">
+    <h2>Search</h2>
 
-        <div id="accountStatus" class="privacy-box"></div>
+    <label>Language</label>
+    <select id="languageSelect">
+      <option value="en-US">English</option>
+      <option value="es-ES">Spanish</option>
+      <option value="am-ET">Amharic</option>
+    </select>
 
-        <div class="grid3">
-          <div class="kpi">Places <span id="kpiPlaces">0</span></div>
-          <div class="kpi">Items <span id="kpiItems">0</span></div>
-          <div class="kpi">Favorites <span id="kpiFavorites">0</span></div>
-        </div>
+    <label>Ask Locivio</label>
+    <input id="searchInput" placeholder="Where is my passport?" onkeyup="searchItems(false)">
 
-        <div id="recentBox" class="result"></div>
+    <button onclick="searchItems(true)">Search</button>
+    <button class="secondary" onclick="startVoiceSearch()">🎤 Voice Search</button>
+    <button class="secondary" onclick="startVoiceAssistantMode()">Start Voice Assistant</button>
+    <button class="secondary" onclick="stopVoiceAssistantMode()">Stop Voice Assistant</button>
+    <button class="secondary" onclick="stopSpeaking()">Stop Speaking</button>
 
-        <button onclick="showScreen('newPlaceScreen')">Add New Location</button>
-        <button onclick="showScreen('searchScreen')">Search Items</button>
-        <button onclick="showScreen('manageScreen')">Manage Items</button>
-        <button onclick="showScreen('backupScreen')">Backup / Restore</button>
-        <button class="secondary" onclick="logout()">Logout</button>
-      </div>
+    <div id="answerBox" class="result"></div>
+    <div id="searchResults"></div>
 
-      <div class="card">
-        <h2>Trial / Subscription</h2>
+    <button class="secondary" onclick="showScreen('appScreen')">Back to Dashboard</button>
+  </section>
 
-        <div class="grid3">
-          <div class="kpi">Days Left <span id="daysLeft">0</span></div>
-          <div class="kpi">Locations <span id="locationUsage">0 / 2</span></div>
-          <div class="kpi">Items <span id="itemUsage">0 / 20</span></div>
-        </div>
+  <section id="manageScreen" class="screen hidden card">
+    <h2>Manage Items</h2>
 
-        <div id="usageWarning" class="warningBox"></div>
+    <h3>Add to Existing Location</h3>
 
-        <button class="premium" onclick="subscribePlus()">Upgrade to Plus</button>
-      </div>
+    <label>Select Location</label>
+    <select id="existingSelect"></select>
 
-      <div class="card">
-        <h2>Favorites</h2>
-        <div id="favoritesBox"></div>
-      </div>
+    <label>Items to Add</label>
+    <textarea id="addItemsInput" rows="3"></textarea>
+    <button class="secondary" onclick="startVoice('addItemsInput', true)">🎤 Speak Items</button>
 
-      <div class="card">
-        <h2>All Saved Locations</h2>
-        <div id="allScans"></div>
-      </div>
+    <label>Additional Notes</label>
+    <textarea id="addNotesInput" rows="2"></textarea>
+    <button class="secondary" onclick="startVoice('addNotesInput', true)">🎤 Speak Notes</button>
 
-      <div id="ownerPanel" class="card hidden">
-        <h2>Owner Mode</h2>
-        <button onclick="ownerSetPlus()">Activate Plus</button>
-        <button onclick="ownerResetTrial()">Reset Trial</button>
-        <button onclick="ownerExpire()">Expire Trial</button>
-        <button onclick="loadDemoData()">Load Demo Data</button>
-        <button class="danger" onclick="resetAllData()">Reset All Data</button>
-      </div>
+    <button onclick="addToExisting()">Add Items</button>
+    <div id="addStatus" class="status"></div>
 
-    </section>
+    <hr style="margin:25px 0;border-color:rgba(148,163,184,.2);">
 
-    <section id="newPlaceScreen" class="screen hidden card">
-      <h2>Add New Location</h2>
+    <h3>Move Item</h3>
 
-      <label>Scan Type</label>
-      <select id="scanMode">
-        <option>Location</option>
-        <option>Important Documents</option>
-        <option>Closet</option>
-        <option>Garage Section</option>
-        <option>Storage Box</option>
-        <option>Other</option>
-      </select>
+    <label>Item to Move</label>
+    <input id="moveItemInput" placeholder="Example: passport">
+    <button class="secondary" onclick="startVoice('moveItemInput', false)">🎤 Speak Item</button>
 
-      <label>Area</label>
-      <input id="areaInput" placeholder="Example: Upstairs, Garage, Office">
+    <label>Move To</label>
+    <select id="movePlaceSelect"></select>
 
-      <label>Location</label>
-      <input id="locationInput" placeholder="Example: Bedroom closet">
+    <button onclick="moveItem()">Move Item</button>
+    <div id="moveStatus" class="status"></div>
 
-      <label>Detail</label>
-      <input id="detailInput" placeholder="Example: Top shelf, black box">
+    <button class="secondary" onclick="showScreen('appScreen')">Back to Dashboard</button>
+  </section>
 
-      <label>Items</label>
-      <textarea id="itemsInput" rows="4" placeholder="Example: passport, shoes, documents"></textarea>
-      <button class="secondary" onclick="startVoice('itemsInput', true)">🎤 Speak Items</button>
+  <section id="backupScreen" class="screen hidden card">
+    <h2>Backup / Restore</h2>
 
-      <label>Notes</label>
-      <textarea id="notesInput" rows="3" placeholder="Any extra notes"></textarea>
+    <button onclick="exportData()">Download Backup</button>
+    <button onclick="shareBackup()">Share Backup</button>
 
-      <label>Inside Photo</label>
-      <input id="insidePhotoInput" type="file" accept="image/*">
-      <img id="insidePreview" style="display:none;">
+    <label>Import Backup</label>
+    <input type="file" accept="application/json" onchange="importData(event)">
 
-      <button class="premium" onclick="runImageRecognition()">AI Detect Items</button>
+    <button class="secondary" onclick="showScreen('appScreen')">Back to Dashboard</button>
+  </section>
 
-      <label>Outside Photo</label>
-      <input id="outsidePhotoInput" type="file" accept="image/*">
-      <img id="outsidePreview" style="display:none;">
+  <section id="aiBoxScreen" class="screen hidden card">
+    <h2>Recognize Closed Box</h2>
+    <button onclick="recognizeClosedBox()">Recognize Box</button>
+    <div id="recognizeResult"></div>
+  </section>
 
-      <button class="success" onclick="saveNewPlace()">Save Location</button>
-      <div id="newStatus" class="status"></div>
+</main>
 
-      <button class="secondary" onclick="showScreen('appScreen')">Back to Dashboard</button>
-    </section>
+<footer>
+  Locivio — Private AI memory for everything you own.
+</footer>
 
-    <section id="searchScreen" class="screen hidden card">
-      <h2>Search</h2>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
 
-      <label>Language</label>
-      <select id="languageSelect">
-        <option value="en-US">English</option>
-        <option value="es-ES">Spanish</option>
-        <option value="am-ET">Amharic</option>
-      </select>
+<script src="subscription.js"></script>
+<script src="voice.js"></script>
+<script src="ai.js"></script>
+<script src="backup.js"></script>
+<script src="owner.js"></script>
 
-      <label>Ask Locivio</label>
-      <input id="searchInput" placeholder="Where is my passport?" onkeyup="searchItems(false)">
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+</script>
 
-      <button onclick="searchItems(true)">Search</button>
-      <button class="secondary" onclick="startVoiceSearch()">🎤 Voice Search</button>
-      <button class="secondary" onclick="startVoiceAssistantMode()">Start Voice Assistant</button>
-      <button class="secondary" onclick="stopVoiceAssistantMode()">Stop Voice Assistant</button>
-      <button class="secondary" onclick="stopSpeaking()">Stop Speaking</button>
-
-      <div id="answerBox" class="result"></div>
-      <div id="searchResults"></div>
-
-      <button class="secondary" onclick="showScreen('appScreen')">Back to Dashboard</button>
-    </section>
-
-    <section id="manageScreen" class="screen hidden card">
-      <h2>Manage Items</h2>
-
-      <h3>Add to Existing Location</h3>
-      <label>Select Location</label>
-      <select id="existingSelect"></select>
-
-      <label>Items to Add</label>
-      <textarea id="addItemsInput" rows="3"></textarea>
-
-      <label>Additional Notes</label>
-      <textarea id="addNotesInput" rows="2"></textarea>
-
-      <button onclick="addToExisting()">Add Items</button>
-      <div id="addStatus" class="status"></div>
-
-      <hr style="margin:25px 0;border-color:rgba(148,163,184,.2);">
-
-      <h3>Move Item</h3>
-      <label>Item to Move</label>
-      <input id="moveItemInput" placeholder="Example: passport">
-
-      <label>Move To</label>
-      <select id="movePlaceSelect"></select>
-
-      <button onclick="moveItem()">Move Item</button>
-      <div id="moveStatus" class="status"></div>
-
-      <button class="secondary" onclick="showScreen('appScreen')">Back to Dashboard</button>
-    </section>
-
-    <section id="backupScreen" class="screen hidden card">
-      <h2>Backup / Restore</h2>
-
-      <button onclick="exportData()">Download Backup</button>
-      <button onclick="shareBackup()">Share Backup</button>
-
-      <label>Import Backup</label>
-      <input type="file" accept="application/json" onchange="importData(event)">
-
-      <button class="secondary" onclick="showScreen('appScreen')">Back to Dashboard</button>
-    </section>
-
-    <section id="aiBoxScreen" class="screen hidden card">
-      <h2>Recognize Closed Box</h2>
-      <button onclick="recognizeClosedBox()">Recognize Box</button>
-      <div id="recognizeResult"></div>
-    </section>
-
-  </main>
-
-  <footer>
-    Locivio — Private AI memory for everything you own.
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
-
-  
-  
-  
-  <script src="voice.js"></script>
-  <script src="ai.js"></script>
-  <script src="backup.js"></script>
-  <script src="owner.js"></script>
-  
-
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js");
-    }
-  </script>
 <script type="module" src="firebase.js"></script>
 <script type="module" src="auth.js"></script>
-<script type="module" src="database.js"></script>
-<script type="module" src="app.js"></script>
+<script src="database.js"></script>
+<script src="app.js"></script>
+
 </body>
 </html>
-
-
