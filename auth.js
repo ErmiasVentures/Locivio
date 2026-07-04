@@ -1,144 +1,66 @@
-/* ==========================================
-   LOCIVIO AUTHENTICATION
-========================================== */
+import { auth, db } from "./firebase.js";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+  doc,
+  setDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-const LOCIVIO_ACCOUNT_KEY = "locivio_account";
-const LOCIVIO_SESSION_KEY = "locivio_session";
+window.createAccount = async function () {
+  const name = document.getElementById("signupName")?.value.trim();
+  const email = document.getElementById("signupEmail")?.value.trim();
+  const password = document.getElementById("signupPassword")?.value;
 
-function createAccount() {
-  const email = document.getElementById("signupEmail").value.trim().toLowerCase();
-  const password = document.getElementById("signupPassword").value;
-  const remember = document.getElementById("signupRemember").checked;
-
-  if (!email) {
-    alert("Please enter your email.");
+  if (!name || !email || !password) {
+    alert("Please enter name, email, and password.");
     return;
   }
 
-  if (!validateEmail(email)) {
-    alert("Please enter a valid email.");
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    await setDoc(doc(db, "users", user.uid), {
+      name,
+      email,
+      createdAt: serverTimestamp()
+    });
+
+    alert("Account created successfully!");
+    if (typeof showScreen === "function") showScreen("homeScreen");
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
+window.loginAccount = async function () {
+  const email = document.getElementById("loginEmail")?.value.trim();
+  const password = document.getElementById("loginPassword")?.value;
+
+  if (!email || !password) {
+    alert("Please enter email and password.");
     return;
   }
 
-  if (!password || password.length < 6) {
-    alert("Password must be at least 6 characters.");
-    return;
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("Login successful!");
+    if (typeof showScreen === "function") showScreen("homeScreen");
+  } catch (error) {
+    alert(error.message);
   }
+};
 
-  const existingAccount = getAccount();
+window.logoutAccount = async function () {
+  await signOut(auth);
+  if (typeof showScreen === "function") showScreen("loginScreen");
+};
 
-  if (existingAccount && existingAccount.email === email) {
-    alert("An account already exists with this email. Please log in.");
-    showScreen("loginScreen");
-    return;
-  }
-
-  const today = new Date();
-
-  const account = {
-    email: email,
-    password: password,
-    remember: remember,
-    plan: "trial",
-    status: "active",
-    createdAt: today.toISOString(),
-    trialStart: today.toISOString(),
-    trialEnd: new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString()
-  };
-
-  saveAccount(account);
-  startSession(account);
-
-  alert("Account created. Your 5-day free trial has started.");
-}
-
-function login() {
-  const email = document.getElementById("loginEmail").value.trim().toLowerCase();
-  const password = document.getElementById("loginPassword").value;
-  const remember = document.getElementById("loginRemember").checked;
-
-  const account = getAccount();
-
-  if (!account) {
-    alert("No account found. Please create an account first.");
-    return;
-  }
-
-  if (account.email !== email || account.password !== password) {
-    alert("Incorrect email or password.");
-    return;
-  }
-
-  account.remember = remember;
-  saveAccount(account);
-
-  startSession(account);
-}
-
-function startSession(account) {
-  sessionStorage.setItem(LOCIVIO_SESSION_KEY, "true");
-
-  if (account.remember) {
-    localStorage.setItem("locivio_remember", "true");
-  } else {
-    localStorage.removeItem("locivio_remember");
-  }
-
-  const hero = document.querySelector(".hero");
-  if (hero) hero.style.display = "none";
-
-  showScreen("appScreen");
-
-  if (typeof checkTrialStatus === "function") checkTrialStatus();
-  if (typeof updateAccountStatus === "function") updateAccountStatus();
-  if (typeof refreshData === "function") refreshData();
-}
-
-function logout() {
-  sessionStorage.removeItem(LOCIVIO_SESSION_KEY);
-  localStorage.removeItem("locivio_remember");
-
-  const hero = document.querySelector(".hero");
-  if (hero) hero.style.display = "flex";
-
-  showLanding();
-}
-
-function checkLogin() {
-  const remember = localStorage.getItem("locivio_remember");
-  const account = getAccount();
-
-  if (remember && account) {
-    startSession(account);
-  }
-}
-
-function getAccount() {
-  return JSON.parse(localStorage.getItem(LOCIVIO_ACCOUNT_KEY));
-}
-
-function saveAccount(account) {
-  localStorage.setItem(LOCIVIO_ACCOUNT_KEY, JSON.stringify(account));
-}
-
-function updateAccountStatus() {
-  const account = getAccount();
-  const statusBox = document.getElementById("accountStatus");
-
-  if (!account || !statusBox) return;
-
-  statusBox.innerHTML = `
-    <strong>${escapeHTML(account.email)}</strong><br>
-    Plan: ${escapeHTML(account.plan.toUpperCase())}<br>
-    Status: ${escapeHTML(account.status.toUpperCase())}
-  `;
-}
-
-function forgotPassword() {
-  alert("Password reset email will be connected later when real cloud authentication is added.");
-}
-
-function validateEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
+onAuthStateChanged(auth, (user) => {
+  window.currentUser = user || null;
+});
