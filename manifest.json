@@ -1,0 +1,13 @@
+{
+  "name": "Locivio",
+  "short_name": "Locivio",
+  "description": "Your private AI memory for everything you own.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#030816",
+  "theme_color": "#2F6BFF",
+  "lang": "en-US",
+  "icons": []
+}
