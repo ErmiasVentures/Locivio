@@ -6,31 +6,45 @@ const FREE_DAYS = 5;
 const FREE_LOCATIONS = 2;
 const FREE_ITEMS = 20;
 
+function getAccount() {
+  const account = JSON.parse(localStorage.getItem("locivioAccount") || "null");
+  if (!account) return null;
+
+  if (!account.trialStart) {
+    account.trialStart = new Date().toISOString();
+  }
+
+  if (!account.trialEnd) {
+    const start = new Date(account.trialStart);
+    account.trialEnd = new Date(start.getTime() + FREE_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  }
+
+  if (!account.plan) account.plan = "trial";
+  if (!account.status) account.status = "active";
+
+  saveAccount(account);
+  return account;
+}
+
+function saveAccount(account) {
+  localStorage.setItem("locivioAccount", JSON.stringify(account));
+}
+
 function isPlusUser() {
   const account = getAccount();
   return account && account.plan === "plus" && account.status === "active";
 }
 
-function canEditData() {
+function getDaysRemaining() {
   const account = getAccount();
+  if (!account) return 0;
+  if (isPlusUser()) return "∞";
 
-  if (!account) {
-    alert("Please login first.");
-    return false;
-  }
+  const now = new Date();
+  const end = new Date(account.trialEnd);
+  const diff = end - now;
 
-  checkTrialStatus();
-
-  const updatedAccount = getAccount();
-
-  if (isPlusUser()) return true;
-
-  if (updatedAccount.status === "expired") {
-    alert("Your 5-day free trial has ended. Subscribe to Plus to add or edit locations.");
-    return false;
-  }
-
-  return true;
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
 function checkTrialStatus() {
@@ -43,99 +57,78 @@ function checkTrialStatus() {
     return;
   }
 
-  const now = new Date();
-  const trialEnd = new Date(account.trialEnd);
-
-  if (now > trialEnd) {
+  if (getDaysRemaining() <= 0) {
     account.status = "expired";
-    saveAccount(account);
+  } else {
+    account.status = "active";
   }
-}
 
-function getDaysRemaining() {
-  const account = getAccount();
-  if (!account) return 0;
-
-  if (isPlusUser()) return "∞";
-
-  const now = new Date();
-  const end = new Date(account.trialEnd);
-  const diff = end - now;
-
-  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  saveAccount(account);
 }
 
 function updateUsageDashboard() {
   const account = getAccount();
-  if (!account || typeof db === "undefined" || !db) return;
+  if (!account) return;
+
+  if (typeof getAllLocations !== "function") return;
 
   getAllLocations(function (locations) {
     const locationCount = locations.length;
-    const itemCount = countTotalItems(locations);
+    const itemCount = typeof countTotalItems === "function"
+      ? countTotalItems(locations)
+      : locations.reduce((total, loc) => total + ((loc.items || []).length), 0);
 
     const daysLeft = document.getElementById("daysLeft");
     const locationUsage = document.getElementById("locationUsage");
     const itemUsage = document.getElementById("itemUsage");
     const warning = document.getElementById("usageWarning");
 
-    if (!daysLeft || !locationUsage || !itemUsage || !warning) return;
-
-    daysLeft.innerText = getDaysRemaining();
+    if (daysLeft) daysLeft.innerText = getDaysRemaining();
 
     if (isPlusUser()) {
-      locationUsage.innerText = locationCount + " / Unlimited";
-      itemUsage.innerText = itemCount + " / Unlimited";
-      warning.innerHTML = "⭐ Plus active. Unlimited locations and items.";
+      if (locationUsage) locationUsage.innerText = locationCount + " / Unlimited";
+      if (itemUsage) itemUsage.innerText = itemCount + " / Unlimited";
+      if (warning) warning.innerHTML = "⭐ Plus active. Unlimited locations and items.";
       return;
     }
 
-    locationUsage.innerText = locationCount + " / " + FREE_LOCATIONS;
-    itemUsage.innerText = itemCount + " / " + FREE_ITEMS;
+    if (locationUsage) locationUsage.innerText = locationCount + " / " + FREE_LOCATIONS;
+    if (itemUsage) itemUsage.innerText = itemCount + " / " + FREE_ITEMS;
 
-    let message = "";
+    let message = "5-day free trial active.";
 
     if (account.status === "expired") {
-      message = `
-        <strong>Your 5-day free trial has ended.</strong><br>
-        You can still search and view saved items, but adding/editing is locked until you subscribe.
-      `;
-    } else {
-      const remaining = getDaysRemaining();
-
-      if (remaining <= 2) {
-        message += `⚠ Trial ends in ${remaining} day(s).<br>`;
-      }
-
-      if (locationCount >= FREE_LOCATIONS) {
-        message += "⚠ Free trial location limit reached.<br>";
-      }
-
-      if (itemCount >= FREE_ITEMS) {
-        message += "⚠ Free trial item limit reached.<br>";
-      }
-
-      if (!message) {
-        message = "5-day free trial active.";
-      }
+      message = "Your 5-day free trial has ended.";
+    } else if (getDaysRemaining() <= 2) {
+      message = `⚠ Trial ends in ${getDaysRemaining()} day(s).`;
     }
 
-    warning.innerHTML = message;
+    if (warning) warning.innerHTML = message;
   });
 }
 
+function canEditData() {
+  const account = getAccount();
+
+  if (!account) {
+    alert("Please login first.");
+    return false;
+  }
+
+  checkTrialStatus();
+
+  if (isPlusUser()) return true;
+
+  if (getAccount().status === "expired") {
+    alert("Your 5-day free trial has ended. Subscribe to Plus.");
+    return false;
+  }
+
+  return true;
+}
+
 function subscribePlus() {
-  alert(
-    "Stripe payment will be connected here.\n\n" +
-    "Plus will be $3.99/month and includes:\n\n" +
-    "• Unlimited locations\n" +
-    "• Unlimited items\n" +
-    "• AI image recognition\n" +
-    "• Add to existing locations\n" +
-    "• Move items\n" +
-    "• Voice search\n" +
-    "• Talk-back answers\n" +
-    "• Backup and restore"
-  );
+  alert("Stripe payment will be connected here.");
 }
 
 function activatePlus() {
@@ -146,17 +139,14 @@ function activatePlus() {
   account.status = "active";
   saveAccount(account);
 
-  updateAccountStatus();
   updateUsageDashboard();
   refreshData();
 }
 
 function resetTrial() {
-  const account = getAccount();
-  if (!account) return;
-
   const today = new Date();
 
+  const account = getAccount() || {};
   account.plan = "trial";
   account.status = "active";
   account.trialStart = today.toISOString();
@@ -164,7 +154,6 @@ function resetTrial() {
 
   saveAccount(account);
 
-  updateAccountStatus();
   updateUsageDashboard();
   refreshData();
 }
@@ -176,7 +165,6 @@ function expireTrial() {
   account.status = "expired";
   saveAccount(account);
 
-  updateAccountStatus();
   updateUsageDashboard();
   refreshData();
 }
@@ -185,4 +173,3 @@ function initSubscription() {
   checkTrialStatus();
   updateUsageDashboard();
 }
-
